@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="范鸣浩御膳房">
+<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍳</text></svg>">
+<title>范鸣浩御膳房</title>
+<style>
+  :root {
+    --bg: #fdf6f0;
+    --card: #ffffff;
+    --text: #3d3027;
+    --muted: #8c7b6b;
+    --accent: #d4451a;
+    --accent-soft: #fff0eb;
+    --border: #f0e6dc;
+    --tag-bg: #fef5e7;
+    --shadow: 0 2px 16px rgba(60,30,10,.06);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1a1410;
+      --card: #241c16;
+      --text: #e8dcd0;
+      --muted: #a8947e;
+      --accent: #f06030;
+      --accent-soft: #2a1810;
+      --border: #352920;
+      --tag-bg: #2a1e14;
+      --shadow: 0 2px 16px rgba(0,0,0,.3);
+    }
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Noto Sans SC", sans-serif;
+    background: var(--bg); color: var(--text); line-height: 1.7;
+    min-height: 100vh;
+  }
+
+  /* ---- View switching ---- */
+  .view { display: none; }
+  .view.active { display: block; }
+
+  /* ====== WELCOME VIEW ====== */
+  .welcome {
+    min-height: 100vh; display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 40px 24px; text-align: center;
+  }
+  .welcome .crown { font-size: 72px; margin-bottom: 16px; animation: float 3s ease-in-out infinite; }
+  @keyframes float {
+    0%,100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+  }
+  .welcome h1 {
+    font-size: 28px; font-weight: 700;
+    background: linear-gradient(135deg, #d4451a, #e8873e);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 8px;
+  }
+  .welcome .welcome-sub { font-size: 15px; color: var(--muted); margin-bottom: 48px; }
+  .welcome .btn-enter {
+    display: inline-flex; align-items: center; gap: 12px;
+    background: var(--accent); color: #fff;
+    border: none; border-radius: 50px;
+    padding: 18px 40px; font-size: 20px; font-weight: 700;
+    cursor: pointer; letter-spacing: 2px;
+    box-shadow: 0 8px 30px rgba(212,69,26,.35);
+    transition: all .2s;
+    animation: pulse 2s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%,100% { box-shadow: 0 8px 30px rgba(212,69,26,.35); }
+    50% { box-shadow: 0 8px 50px rgba(212,69,26,.55); transform: scale(1.03); }
+  }
+  .welcome .btn-enter:active { transform: scale(.95); animation: none; }
+
+  /* ====== LIST VIEW ====== */
+  .list-header {
+    position: sticky; top: 0; z-index: 10;
+    background: var(--bg); backdrop-filter: blur(12px);
+    padding: 16px 16px 12px;
+    border-bottom: 1px solid var(--border);
+  }
+  .list-header .list-title-row {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 12px;
+  }
+  .list-header h2 {
+    font-size: 20px; font-weight: 700;
+    background: linear-gradient(135deg, var(--accent), #e8873e);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .list-header .btn-back {
+    background: none; border: 1px solid var(--border);
+    color: var(--muted); padding: 6px 14px; border-radius: 20px;
+    font-size: 13px; cursor: pointer;
+  }
+  .search-box {
+    position: relative; display: flex; align-items: center;
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 25px; padding: 0 16px;
+  }
+  .search-box .search-icon { font-size: 18px; color: var(--muted); margin-right: 8px; }
+  .search-box input {
+    flex: 1; border: none; background: transparent;
+    height: 42px; font-size: 15px; color: var(--text);
+    outline: none;
+  }
+  .search-box input::placeholder { color: var(--muted); }
+  .search-box .search-clear {
+    display: none; background: none; border: none;
+    color: var(--muted); font-size: 18px; cursor: pointer; padding: 4px;
+  }
+
+  .recipe-grid {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 14px; padding: 16px;
+  }
+  .recipe-grid .empty {
+    grid-column: 1 / -1; text-align: center;
+    padding: 60px 20px; color: var(--muted); font-size: 14px;
+  }
+  .recipe-tile {
+    background: var(--card); border-radius: 18px;
+    padding: 24px 16px 20px; text-align: center;
+    box-shadow: var(--shadow); cursor: pointer;
+    transition: all .2s; border: 1px solid var(--border);
+    display: flex; flex-direction: column; align-items: center; gap: 10px;
+  }
+  .recipe-tile:active { transform: scale(.96); }
+  .recipe-tile .tile-emoji { font-size: 44px; }
+  .recipe-tile .tile-name { font-size: 16px; font-weight: 700; }
+  .recipe-tile .tile-meta { font-size: 12px; color: var(--muted); }
+
+  /* ====== DETAIL VIEW ====== */
+  .detail-header {
+    position: sticky; top: 0; z-index: 10;
+    background: var(--bg); backdrop-filter: blur(12px);
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 12px;
+  }
+  .detail-header .btn-back {
+    background: none; border: 1px solid var(--border);
+    color: var(--muted); padding: 6px 14px; border-radius: 20px;
+    font-size: 13px; cursor: pointer; white-space: nowrap;
+  }
+  .detail-header .detail-title { font-size: 18px; font-weight: 700; }
+
+  .recipe-card {
+    margin: 20px 16px; background: var(--card);
+    border-radius: 20px; box-shadow: var(--shadow);
+    overflow: hidden;
+  }
+  .recipe-hero {
+    height: 180px; display: flex; align-items: flex-end; padding: 20px;
+    position: relative;
+  }
+  .recipe-hero::after {
+    content:''; position:absolute; inset:0;
+    background: radial-gradient(circle at 30% 50%, transparent 40%, rgba(0,0,0,.15) 100%);
+  }
+  .recipe-hero .hero-emoji { font-size: 56px; position: relative; z-index: 1; }
+  .recipe-hero .hero-info { position: relative; z-index: 1; margin-left: 16px; color: #fff; }
+  .recipe-hero .hero-info h2 { font-size: 22px; font-weight: 700; text-shadow: 0 2px 4px rgba(0,0,0,.2); }
+  .hero-info .meta { font-size: 13px; opacity: .85; margin-top: 4px; }
+  .hero-info .meta span { margin-right: 12px; }
+
+  .recipe-body { padding: 20px; }
+
+  .section { margin-bottom: 24px; }
+  .section-title {
+    font-size: 16px; font-weight: 700; color: var(--accent);
+    display: flex; align-items: center; gap: 8px; margin-bottom: 12px;
+  }
+  .section-title .icon { font-size: 20px; }
+
+  .ingredient-list { display: flex; flex-wrap: wrap; gap: 8px; }
+  .ingredient-tag {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: var(--tag-bg); border: 1px solid var(--border);
+    border-radius: 20px; padding: 8px 14px; font-size: 14px;
+    cursor: pointer; user-select: none; transition: all .15s;
+  }
+  .ingredient-tag:active { transform: scale(.96); }
+  .ingredient-tag.checked { opacity: .45; text-decoration: line-through; border-color: transparent; }
+  .ingredient-tag .check { font-size: 12px; color: var(--muted); }
+  .ingredient-tag.checked .check { color: #4caf50; }
+
+  .seasoning-group { margin-bottom: 4px; }
+  .seasoning-group .group-label { font-size: 12px; color: var(--muted); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 1px; }
+
+  .step {
+    display: flex; gap: 12px; margin-bottom: 14px;
+    padding: 14px; border-radius: 14px;
+    background: var(--bg); border: 1px solid var(--border);
+  }
+  .step-num {
+    flex-shrink: 0; width: 32px; height: 32px;
+    background: var(--accent); color: #fff;
+    border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    font-size: 14px; font-weight: 700;
+  }
+  .step-content { font-size: 15px; padding-top: 4px; }
+  .step-content .highlight { color: var(--accent); font-weight: 600; }
+  .step-content .note { display: block; margin-top: 4px; font-size: 12px; color: var(--muted); font-style: italic; }
+  .step-content .note .highlight { color: var(--accent); font-weight: 600; }
+
+  /* Install banner */
+  .install-banner {
+    display: none; margin: 12px 16px; padding: 12px 18px;
+    background: var(--accent-soft); border: 1px solid var(--accent);
+    border-radius: 14px; font-size: 13px; color: var(--accent);
+    align-items: center; justify-content: space-between;
+  }
+  .install-banner.show { display: flex; }
+  .install-banner button {
+    background: var(--accent); color: #fff; border: none;
+    border-radius: 8px; padding: 6px 14px; font-size: 13px; cursor: pointer;
+  }
+</style>
+</head>
+<body>
+
+<!-- ====== WELCOME VIEW ====== -->
+<div class="view active" id="viewWelcome">
+  <div class="welcome">
+    <div class="crown">👨‍🍳</div>
+    <h1>欢迎来到<br>范鸣浩的御膳房</h1>
+    <p class="welcome-sub">私人珍藏 · 道道经典</p>
+    <button class="btn-enter" onclick="goToList()">📖 菜谱藏书阁</button>
+  </div>
+</div>
+
+<!-- ====== LIST VIEW ====== -->
+<div class="view" id="viewList">
+  <div class="list-header">
+    <div class="list-title-row">
+      <h2>📚 菜谱藏书阁</h2>
+      <button class="btn-back" onclick="goToWelcome()">← 返回</button>
+    </div>
+    <div class="search-box">
+      <span class="search-icon">🔍</span>
+      <input type="text" id="searchInput" placeholder="搜索菜谱…" oninput="renderList()">
+      <button class="search-clear" id="searchClear" onclick="clearSearch()">✕</button>
+    </div>
+  </div>
+  <div class="recipe-grid" id="recipeGrid"></div>
+</div>
+
+<!-- ====== DETAIL VIEW ====== -->
+<div class="view" id="viewDetail">
+  <div class="detail-header">
+    <button class="btn-back" onclick="goToList()">← 藏书阁</button>
+    <span class="detail-title" id="detailTitle">菜谱详情</span>
+  </div>
+  <div id="detailContent"></div>
+</div>
+
+<div class="install-banner" id="installBanner">
+  添加到主屏幕，随时随地看菜谱
+  <button onclick="installPrompt()">添加</button>
+</div>
+
+<script>
+// ==================== RECIPE DATA ====================
+const recipes = [
+  {
+    id: 'crawfish',
+    name: '麻辣小龙虾',
+    emoji: '🦞',
+    time: '50分钟',
+    category: '中餐',
+    taste: '麻辣',
+    heroGradient: 'linear-gradient(135deg, #d4451a 0%, #e8873e 40%, #f5a623 100%)',
+    ingredientGroups: [
+      { label: '主料', items: ['小龙虾 1.5斤'] },
+      { label: '香料组', items: ['花椒 一小把', '麻椒 少量', '干辣椒 适量', '香叶 2片', '八角 1.5个', '桂皮 0.75个（掰一小块）'] },
+      { label: '调味组', items: ['葱段 适量', '大蒜 切末', '酱油 适量', '料酒 适量', '冰糖 一小把', '盐 2.3勺/1.5斤虾'] }
+    ],
+    steps: [
+      { text: '提前烧一锅<span class="highlight">热水</span>备用，为后面炖煮做好准备。', note: '💡 开水备好才不会中途手忙脚乱' },
+      { text: '锅烧<span class="highlight">小火</span>，油冒烟后放入<span class="highlight">花椒</span>，紧接着放<span class="highlight">蒜末、葱段、干辣椒</span>。', note: '🔥 动作连贯，翻炒几下爆出香味即可，不要炒糊' },
+      { text: '放入<span class="highlight">小龙虾</span>，迅速<span class="highlight">盖上锅盖</span>，利用洗虾自带的水分将虾闷死。', note: '🦞 洗虾的水不用沥太干，这一步水分刚好用来闷熟' },
+      { text: '小龙虾死后，<span class="highlight">开盖搅拌</span>，放入<span class="highlight">酱油、料酒</span>。', note: '' },
+      { text: '加入<span class="highlight">开水淹没小龙虾</span>，放入<span class="highlight">麻椒（少量）、香叶（2片）、八角（1.5个）、桂皮（0.75个）、冰糖（一小把）</span>，每1.5斤虾加<span class="highlight">2.3勺盐</span>。将香料全部拍入水中。', note: '🧂 盐的用量：约1.5勺/斤，按虾的重量等比调整' },
+      { text: '调火到<span class="highlight">水刚刚烧开的状态</span>（保持微沸），<span class="highlight">不盖盖</span>炖煮。', note: '🌡 保持中小火，水面微微冒泡即可，不要大滚' },
+      { text: '炖<span class="highlight">40分钟</span>后出锅。<span class="highlight">中途多搅拌</span>，让每只虾都均匀入味。', note: '⏲ 最后几分钟可以尝一下汤汁咸淡，按口味微调' }
+    ]
+  },
+  {
+    id: 'malaxiangguo',
+    name: '麻辣香锅',
+    emoji: '🍲',
+    time: '20分钟',
+    category: '中餐',
+    taste: '麻辣',
+    heroGradient: 'linear-gradient(135deg, #c0392b 0%, #e74c3c 40%, #f39c12 100%)',
+    ingredientGroups: [
+      { label: '需焯水组', items: ['火锅丸子', '肉片', '蔬菜'] },
+      { label: '熟制品（免焯水）', items: ['午餐肉', '培根', '鹌鹑蛋'] },
+      { label: '香料组', items: ['花椒 一小把', '蒜末', '葱末', '干辣椒 适量'] },
+      { label: '调味组', items: ['麻辣香锅底料 半包~1包', '酱油 适量', '盐 少许'] }
+    ],
+    steps: [
+      { text: '烧一锅开水，将<span class="highlight">火锅丸子、肉片、蔬菜</span>等生料用开水烫熟，捞出备用。', note: '🥩 午餐肉、培根、鹌鹑蛋等本身就是熟的，<span class="highlight">不用烫</span>' },
+      { text: '开<span class="highlight">中小火</span>起锅烧油，油<span class="highlight">适量多些</span>（香锅油多才香）。', note: '🫗 油要比平时炒菜多，底料需要油来炒出红油' },
+      { text: '油热后放入<span class="highlight">花椒、蒜末、葱末、干辣椒</span>，爆出香味。', note: '🔥 中小火慢爆，避免蒜末炒焦发苦' },
+      { text: '放入<span class="highlight">麻辣香锅底料（半包到一包）</span>，翻炒至<span class="highlight">红油炒出来</span>。', note: '🌶 底料用量看个人口味，一包是重辣级别' },
+      { text: '先放入<span class="highlight">午餐肉、培根、鹌鹑蛋</span>等熟制品，搅拌翻炒一会儿。', note: '🥫 先放熟制品让它们先裹上红油，更入味' },
+      { text: '放入之前烫好的<span class="highlight">火锅丸子、肉、菜</span>（带点水没关系），加<span class="highlight">酱油、少许盐</span>。', note: '💧 焯水后带点水进去正好，不会太干' },
+      { text: '转<span class="highlight">中大火</span>翻炒，炒熟炒匀即可<span class="highlight">出锅</span>。', note: '🍲 收干到喜欢的程度就出锅，趁热吃最香' }
+    ]
+  }
+];
+
+// ==================== VIEW NAVIGATION ====================
+function showView(viewId) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.getElementById(viewId).classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+function goToList() {
+  showView('viewList');
+  document.getElementById('searchInput').value = '';
+  renderList();
+}
+
+function goToWelcome() {
+  showView('viewWelcome');
+}
+
+function goToDetail(recipeId) {
+  const r = recipes.find(r => r.id === recipeId);
+  if (!r) return;
+  showView('viewDetail');
+  document.getElementById('detailTitle').textContent = r.name;
+  document.getElementById('detailContent').innerHTML = buildDetailHTML(r);
+}
+
+// ==================== LIST RENDERING ====================
+function renderList() {
+  const query = document.getElementById('searchInput').value.trim().toLowerCase();
+  const grid = document.getElementById('recipeGrid');
+  const clearBtn = document.getElementById('searchClear');
+
+  clearBtn.style.display = query ? 'block' : 'none';
+
+  const filtered = query
+    ? recipes.filter(r =>
+        r.name.toLowerCase().includes(query) ||
+        r.taste.toLowerCase().includes(query) ||
+        r.category.toLowerCase().includes(query) ||
+        r.ingredientGroups.some(g => g.items.some(i => i.toLowerCase().includes(query)))
+      )
+    : recipes;
+
+  if (filtered.length === 0) {
+    grid.innerHTML = '<div class="empty">🔍 没找到匹配的菜谱<br>试试其他关键词吧～</div>';
+    return;
+  }
+
+  grid.innerHTML = filtered.map(r => `
+    <div class="recipe-tile" onclick="goToDetail('${r.id}')">
+      <span class="tile-emoji">${r.emoji}</span>
+      <span class="tile-name">${r.name}</span>
+      <span class="tile-meta">${r.time} · ${r.taste}</span>
+    </div>
+  `).join('');
+}
+
+function clearSearch() {
+  document.getElementById('searchInput').value = '';
+  renderList();
+}
+
+// ==================== DETAIL RENDERING ====================
+function buildDetailHTML(r) {
+  const ingredientHTML = r.ingredientGroups.map((g, i) => `
+    <div class="seasoning-group"${i > 0 ? ' style="margin-top:12px;"' : ''}>
+      <div class="group-label">${g.label}</div>
+      <div class="ingredient-list">
+        ${g.items.map(item => `
+          <span class="ingredient-tag" onclick="this.classList.toggle('checked')"><span class="check">○</span>${item}</span>
+        `).join('')}
+      </div>
+    </div>
+  `).join('');
+
+  const stepHTML = r.steps.map((s, i) => `
+    <div class="step">
+      <div class="step-num">${i + 1}</div>
+      <div class="step-content">
+        ${s.text}
+        ${s.note ? `<span class="note">${s.note}</span>` : ''}
+      </div>
+    </div>
+  `).join('');
+
+  return `
+    <div class="recipe-card">
+      <div class="recipe-hero" style="background:${r.heroGradient};">
+        <span class="hero-emoji">${r.emoji}</span>
+        <div class="hero-info">
+          <h2>${r.name}</h2>
+          <div class="meta">
+            <span>⏱ ${r.time}</span><span>🔥 ${r.category}</span><span>🌶 ${r.taste}</span>
+          </div>
+        </div>
+      </div>
+      <div class="recipe-body">
+        <div class="section">
+          <div class="section-title"><span class="icon">🧺</span>食材清单</div>
+          ${ingredientHTML}
+        </div>
+        <div class="section">
+          <div class="section-title"><span class="icon">👨‍🍳</span>烹饪步骤</div>
+          ${stepHTML}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+// ==================== INIT ====================
+renderList();
+
+// ---- PWA install ----
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  document.getElementById('installBanner').classList.add('show');
+});
+function installPrompt() {
+  if (deferredPrompt) {
+    deferredPrompt.prompt();
+    deferredPrompt.userChoice.then(() => {
+      document.getElementById('installBanner').classList.remove('show');
+      deferredPrompt = null;
+    });
+  }
+}
+</script>
+</body>
+</html>
